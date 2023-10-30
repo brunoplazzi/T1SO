@@ -1,19 +1,25 @@
+#define HAVE_STRUCT_TIMESPEC
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include <time.h>
 
+
 //dimensoes da matriz
-#define LINHAS 10000;
-#define COLUNAS 10000;
+#define LINHAS 90;
+#define COLUNAS 90;
 
 //tamanho dos macroblocos
-#define MC_LINHA 3;
-#define MC_COLUNA 3;
+#define MC_LINHA 30;
+#define MC_COLUNA 30;
 
 //tamanho maximo do numero
 #define MAX_NUM_SIZE 32000;
+
+//numero de threads
+#define NUM_THREADS 4;
 
 
 //cria matriz de inteiros
@@ -114,19 +120,35 @@ int ehPrimo(int num) {
 	
 	if (num <= 1) { return 0; }
 
-	float raizNum = sqrt(num); //raiz quadrada do numero
+	double raizNum = sqrt(num); //raiz quadrada do numero
 
 	for (i = 2; i <= raizNum; i++) {
-		if (num % i == 0) { return 0; } //nao´eh primo
+		if (num % i == 0) { return 0; } //nao eh primo
 	}
 
 	return 1; //eh primo
 }
 
 
+//cria vetor de macroblocos com zero (lembrar que o vetor comeca em zero e o macrobloco em 1)
+char* vetorMacroblocos(int num_macroblocos) {
+	
+	char* atv_mc = calloc(num_macroblocos, sizeof(char));
+
+	//verificar alocacao
+	if (atv_mc == NULL) {
+		
+		printf("ERRO! No vetor de macroblocos\n");
+		return NULL;
+	}
+	
+	return atv_mc;
+}
+
+
 int main(int argc, char *argv[]) {
 	
-	printf("Trabalho SO\n\n");
+	printf("Sistemas operacionais - Trabalho 1\n");
 
 	int** mat; //matriz
 	int i,j;   //variaveis de apoio
@@ -139,32 +161,51 @@ int main(int argc, char *argv[]) {
 	int mc_l = MC_LINHA;
 	int mc_c = MC_COLUNA;
 
-	int* v; //vetor para receber coordenadas
+	//int* v; //vetor para receber coordenadas
 
 	//tamanho maximo do numero dentro da matriz
 	int max_num_size = MAX_NUM_SIZE;
+
+	int numThreads = NUM_THREADS; //numero de threads
 
 	//contador de numeros primos
 	int contadorPrimos = 0;
 
 	//armazena tempo de execucao
-	double tempo_decorrido = 0.0;
+	double tempo_serial = 0.0;
+	double tempo_paralelo = 0.0;
+
+
+	//calculo do numero de macroblocos
+	int num_macroblocos = (l / mc_l) * (c / mc_c);
+
+	
+	
+	
+	
+	
+	
+	//cria vetor de macroblocos
+	char* atv_mc = vetorMacroblocos(num_macroblocos);
+
 
 	//cria matriz
 	mat = matriz_inteiros(l, c);
 
 	
-	//povoa com randons e print da matriz
+	//povoa com randons
+	printf("Povoando matriz com numeros aleatorios...");
+	
 	for (i = 0; i < l; i++) {
 		for (j = 0; j < c; j++) {
 			
 			mat[i][j] = rand() % max_num_size;
 		}
-		printf("\n");
 	}
+	printf("DONE\n");
 
 	//execucao em modo serial
-
+	printf("EXECUCAO SERIAL:\n");
 	printf("Contando numeros primos...");
 	clock_t inicio = clock(); //inicio da execucao serial
 
@@ -181,13 +222,44 @@ int main(int argc, char *argv[]) {
 	clock_t fim = clock(); //fim da execucao serial
 	printf("DONE\n");
 
-	tempo_decorrido += (double)(fim - inicio) / CLOCKS_PER_SEC;  //calculo do tempo
+	tempo_serial += (double)(fim - inicio) / CLOCKS_PER_SEC;  //calculo do tempo
 
 	printf("Numeros primos: %d\n", contadorPrimos);
-	printf("Tempo de execucao serial: %f segundos\n", tempo_decorrido);
-	
+	printf("Tempo de execucao serial: %f segundos\n", tempo_serial);
+
+
+
+	contadorPrimos = 0; //zerando contador
+
+	printf("EXECUCAO PARALELIZADA:\n");
+
+	//criacao dos mutexes
+
+	pthread_mutex_t mutex_prime;
+	pthread_mutex_t mutex_mc;
+
+	pthread_mutex_init(&mutex_prime, NULL);
+	pthread_mutex_init(&mutex_mc, NULL);
+
+
+
+
+	printf("to implement...\n");
+
+
+
+
+
+
 	//libera matriz
 	liberar_matriz(l, c, mat);
+
+	//libera vetor de macroblocos
+	free(atv_mc);
+
+	//destruir mutexes
+	pthread_mutex_destroy(&mutex_prime, NULL);
+	pthread_mutex_destroy(&mutex_mc, NULL);
 
 	printf("FIM :)\n");
 	return 0;
