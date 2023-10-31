@@ -19,7 +19,7 @@
 #define MAX_NUM_SIZE 32000;
 
 //numero de threads
-#define NUM_THREADS 4;
+#define NUM_THREADS 8
 
 
 //cria matriz de inteiros
@@ -145,6 +145,8 @@ char* vetorMacroblocos(int num_macroblocos) {
 	return atv_mc;
 }
 
+void* threadFuncion(void* param); //prototipo da funcao da thread
+
 
 int main(int argc, char *argv[]) {
 	
@@ -229,6 +231,10 @@ int main(int argc, char *argv[]) {
 
 
 
+	//***************************************************************************************
+
+
+
 	contadorPrimos = 0; //zerando contador
 
 	printf("EXECUCAO PARALELIZADA:\n");
@@ -242,12 +248,18 @@ int main(int argc, char *argv[]) {
 	pthread_mutex_init(&mutex_mc, NULL);
 
 
+	//criacao das threads
+	pthread_t workers[NUM_THREADS];
 
+	for (i = 0; i < NUM_THREADS; i++) {
 
-	printf("to implement...\n");
+		pthread_create(&workers[i], NULL, threadFuncion, NULL);
+	}
 
-
-
+	for (i = 0; i < NUM_THREADS; i++) {
+		
+		pthread_join(workers[i], NULL);
+	}
 
 
 
@@ -263,4 +275,9 @@ int main(int argc, char *argv[]) {
 
 	printf("FIM :)\n");
 	return 0;
+}
+
+void* threadFuncion(void* param) {
+
+	printf("faz as coisas da thread aqui!\n");
 }
