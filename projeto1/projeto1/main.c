@@ -8,18 +8,40 @@
 
 
 //dimensoes da matriz
-#define LINHAS 90;
-#define COLUNAS 90;
+#define LINHAS 1000
+#define COLUNAS 1000
 
 //tamanho dos macroblocos
-#define MC_LINHA 30;
-#define MC_COLUNA 30;
+#define MC_LINHA 1000
+#define MC_COLUNA 1000
 
 //tamanho maximo do numero
-#define MAX_NUM_SIZE 32000;
+#define MAX_NUM_SIZE 32000
 
 //numero de threads
-#define NUM_THREADS 8
+#define NUM_THREADS 1
+
+//VARIAVEIS GLOBAIS
+
+//contador de numeros primos
+int contadorPrimos = 0;
+
+//calculo do numero de macroblocos
+int num_macroblocos = (LINHAS / MC_LINHA) * (COLUNAS / MC_COLUNA);
+
+//macrobloco atual iniciado em 1
+int mc_atual = 1;
+
+
+//criacao dos mutexes
+pthread_mutex_t mutex_prime;
+pthread_mutex_t mutex_mc;
+
+
+//declaracao da matriz
+int** mat;
+
+
 
 
 //cria matriz de inteiros
@@ -86,7 +108,8 @@ int** liberar_matriz(int l, int c, int** mat) {
 int* mc_coordenada(int num_mc, int mat_linha, int mc_linhaSize, int mc_colunaSize) {
 
 	//futura resposta
-	int coordenadas[2];
+	int* coordenadas = (int*)malloc(2 * sizeof(int));
+
 
 	//linha e coluna do macrobloco
 	int l, c;
@@ -130,29 +153,33 @@ int ehPrimo(int num) {
 }
 
 
+
+/*
 //cria vetor de macroblocos com zero (lembrar que o vetor comeca em zero e o macrobloco em 1)
 char* vetorMacroblocos(int num_macroblocos) {
-	
+
 	char* atv_mc = calloc(num_macroblocos, sizeof(char));
 
 	//verificar alocacao
 	if (atv_mc == NULL) {
-		
+
 		printf("ERRO! No vetor de macroblocos\n");
 		return NULL;
 	}
-	
+
 	return atv_mc;
 }
+*/
+
 
 void* threadFuncion(void* param); //prototipo da funcao da thread
 
 
 int main(int argc, char *argv[]) {
 	
-	printf("Sistemas operacionais - Trabalho 1\n");
+	printf("*** T1SO ***\n");
+	printf("Bruno Plazzi & Filipe Moura\n\n");
 
-	int** mat; //matriz
 	int i,j;   //variaveis de apoio
 	
 	//numero de linhas e colunas da matriz
@@ -163,37 +190,23 @@ int main(int argc, char *argv[]) {
 	int mc_l = MC_LINHA;
 	int mc_c = MC_COLUNA;
 
-	//int* v; //vetor para receber coordenadas
 
 	//tamanho maximo do numero dentro da matriz
 	int max_num_size = MAX_NUM_SIZE;
 
 	int numThreads = NUM_THREADS; //numero de threads
 
-	//contador de numeros primos
-	int contadorPrimos = 0;
 
 	//armazena tempo de execucao
 	double tempo_serial = 0.0;
 	double tempo_paralelo = 0.0;
 
-
-	//calculo do numero de macroblocos
-	int num_macroblocos = (l / mc_l) * (c / mc_c);
-
-	
-	
-	
-	
-	
 	
 	//cria vetor de macroblocos
-	char* atv_mc = vetorMacroblocos(num_macroblocos);
-
+	//char* atv_mc = vetorMacroblocos(num_macroblocos);
 
 	//cria matriz
 	mat = matriz_inteiros(l, c);
-
 	
 	//povoa com randons
 	printf("Povoando matriz com numeros aleatorios...");
@@ -204,7 +217,7 @@ int main(int argc, char *argv[]) {
 			mat[i][j] = rand() % max_num_size;
 		}
 	}
-	printf("DONE\n");
+	printf("DONE\n\n");
 
 	//execucao em modo serial
 	printf("EXECUCAO SERIAL:\n");
@@ -227,7 +240,7 @@ int main(int argc, char *argv[]) {
 	tempo_serial += (double)(fim - inicio) / CLOCKS_PER_SEC;  //calculo do tempo
 
 	printf("Numeros primos: %d\n", contadorPrimos);
-	printf("Tempo de execucao serial: %f segundos\n", tempo_serial);
+	printf("Tempo de execucao serial: %f segundos\n\n", tempo_serial);
 
 
 
@@ -239,17 +252,19 @@ int main(int argc, char *argv[]) {
 
 	printf("EXECUCAO PARALELIZADA:\n");
 
-	//criacao dos mutexes
-
-	pthread_mutex_t mutex_prime;
-	pthread_mutex_t mutex_mc;
-
+	
+	//inicializando mutexes
 	pthread_mutex_init(&mutex_prime, NULL);
 	pthread_mutex_init(&mutex_mc, NULL);
 
 
 	//criacao das threads
 	pthread_t workers[NUM_THREADS];
+
+
+	printf("Contando numeros primos...");
+	inicio = clock(); //inicio da execucao paralela
+
 
 	for (i = 0; i < NUM_THREADS; i++) {
 
@@ -261,13 +276,20 @@ int main(int argc, char *argv[]) {
 		pthread_join(workers[i], NULL);
 	}
 
+	fim = clock(); //fim da execucao paralela
+	printf("DONE\n");
 
+	tempo_paralelo += (double)(fim - inicio) / CLOCKS_PER_SEC;  //calculo do tempo
+
+	printf("Numeros primos: %d\n", contadorPrimos);
+	printf("Tempo de execucao paralela: %f segundos\n\n", tempo_paralelo);
+	
 
 	//libera matriz
 	liberar_matriz(l, c, mat);
 
 	//libera vetor de macroblocos
-	free(atv_mc);
+	//free(atv_mc);
 
 	//destruir mutexes
 	pthread_mutex_destroy(&mutex_prime, NULL);
@@ -279,5 +301,46 @@ int main(int argc, char *argv[]) {
 
 void* threadFuncion(void* param) {
 
-	printf("faz as coisas da thread aqui!\n");
+	int* v; //vetor para receber coordenadas
+	int mc_trabalho; //macrobloco a ser analisado
+	int i, j; //auxiliares
+	int localPrimes = 0; //contador local de primos
+
+	
+
+	while (mc_atual <= num_macroblocos) {
+
+		pthread_mutex_lock(&mutex_mc);
+
+		if (mc_atual <= num_macroblocos) {
+			
+			mc_trabalho = mc_atual;
+			mc_atual++;
+		}//POSSIVEL ERRO AQUI DEPOIS VC OBSERVE E CORRIJA...TROCAR MUTEX DE LUGAR
+
+		pthread_mutex_unlock(&mutex_mc);
+
+		v = mc_coordenada(mc_trabalho, LINHAS, MC_LINHA, MC_COLUNA);
+
+
+		int iFim = v[0] + MC_LINHA;       
+		int jFim = v[1] + MC_COLUNA;  
+
+		for (i = v[0]; i < iFim; i++) {
+			for (j = v[1]; j < jFim; j++) {
+				
+				if (ehPrimo(mat[i][j]) == 1) { localPrimes++; }
+			}
+		}
+
+		pthread_mutex_lock(&mutex_prime);
+
+		contadorPrimos += localPrimes;
+
+		pthread_mutex_unlock(&mutex_prime);
+
+	}
+
+	pthread_exit(0);
+	
 }
