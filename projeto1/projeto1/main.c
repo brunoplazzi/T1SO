@@ -8,18 +8,18 @@
 
 
 //dimensoes da matriz
-#define LINHAS 1000
-#define COLUNAS 1000
+#define LINHAS 10000
+#define COLUNAS 10000
 
 //tamanho dos macroblocos
-#define MC_LINHA 1000
-#define MC_COLUNA 1000
+#define MC_LINHA 100
+#define MC_COLUNA 100
 
 //tamanho maximo do numero
 #define MAX_NUM_SIZE 32000
 
 //numero de threads
-#define NUM_THREADS 1
+#define NUM_THREADS 16
 
 //VARIAVEIS GLOBAIS
 
@@ -305,30 +305,30 @@ void* threadFuncion(void* param) {
 	int mc_trabalho; //macrobloco a ser analisado
 	int i, j; //auxiliares
 	int localPrimes = 0; //contador local de primos
-
 	
 
 	while (mc_atual <= num_macroblocos) {
-
+		
 		pthread_mutex_lock(&mutex_mc);
 
 		if (mc_atual <= num_macroblocos) {
 			
 			mc_trabalho = mc_atual;
 			mc_atual++;
-		}//POSSIVEL ERRO AQUI DEPOIS VC OBSERVE E CORRIJA...TROCAR MUTEX DE LUGAR
+		}
 
 		pthread_mutex_unlock(&mutex_mc);
 
+		
 		v = mc_coordenada(mc_trabalho, LINHAS, MC_LINHA, MC_COLUNA);
 
 
-		int iFim = v[0] + MC_LINHA;       
-		int jFim = v[1] + MC_COLUNA;  
+		int iFim = v[0] + MC_LINHA;
+		int jFim = v[1] + MC_COLUNA;
 
 		for (i = v[0]; i < iFim; i++) {
 			for (j = v[1]; j < jFim; j++) {
-				
+
 				if (ehPrimo(mat[i][j]) == 1) { localPrimes++; }
 			}
 		}
@@ -338,6 +338,8 @@ void* threadFuncion(void* param) {
 		contadorPrimos += localPrimes;
 
 		pthread_mutex_unlock(&mutex_prime);
+		
+		localPrimes = 0;
 
 	}
 
