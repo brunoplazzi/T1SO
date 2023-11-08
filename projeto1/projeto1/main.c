@@ -12,14 +12,14 @@
 #define COLUNAS 10000
 
 //tamanho dos macroblocos
-#define MC_LINHA 100
-#define MC_COLUNA 100
+#define MC_LINHA 1000
+#define MC_COLUNA 1000
 
 //tamanho maximo do numero
 #define MAX_NUM_SIZE 32000
 
 //numero de threads
-#define NUM_THREADS 8
+#define NUM_THREADS 4
 
 //VARIAVEIS GLOBAIS
 
@@ -265,6 +265,10 @@ int main(int argc, char *argv[]) {
 
 	printf("Numeros primos: %d\n", contadorPrimos);
 	printf("Tempo de execucao paralela: %f segundos\n\n", tempo_paralelo);
+
+	//speedup
+	double s = tempo_serial / tempo_paralelo;
+	printf("Speed up: %f\n", s);
 	
 
 	//libera matriz
