@@ -19,7 +19,7 @@
 #define MAX_NUM_SIZE 32000
 
 //numero de threads
-#define NUM_THREADS 16
+#define NUM_THREADS 8
 
 //VARIAVEIS GLOBAIS
 
@@ -154,24 +154,6 @@ int ehPrimo(int num) {
 
 
 
-/*
-//cria vetor de macroblocos com zero (lembrar que o vetor comeca em zero e o macrobloco em 1)
-char* vetorMacroblocos(int num_macroblocos) {
-
-	char* atv_mc = calloc(num_macroblocos, sizeof(char));
-
-	//verificar alocacao
-	if (atv_mc == NULL) {
-
-		printf("ERRO! No vetor de macroblocos\n");
-		return NULL;
-	}
-
-	return atv_mc;
-}
-*/
-
-
 void* threadFuncion(void* param); //prototipo da funcao da thread
 
 
@@ -288,9 +270,6 @@ int main(int argc, char *argv[]) {
 	//libera matriz
 	liberar_matriz(l, c, mat);
 
-	//libera vetor de macroblocos
-	//free(atv_mc);
-
 	//destruir mutexes
 	pthread_mutex_destroy(&mutex_prime, NULL);
 	pthread_mutex_destroy(&mutex_mc, NULL);
@@ -301,7 +280,7 @@ int main(int argc, char *argv[]) {
 
 void* threadFuncion(void* param) {
 
-	int* v; //vetor para receber coordenadas
+	
 	int mc_trabalho; //macrobloco a ser analisado
 	int i, j; //auxiliares
 	int localPrimes = 0; //contador local de primos
@@ -309,6 +288,8 @@ void* threadFuncion(void* param) {
 
 	while (mc_atual <= num_macroblocos) {
 		
+		int* v; //vetor para receber coordenadas
+
 		pthread_mutex_lock(&mutex_mc);
 
 		if (mc_atual <= num_macroblocos) {
@@ -340,6 +321,8 @@ void* threadFuncion(void* param) {
 		pthread_mutex_unlock(&mutex_prime);
 		
 		localPrimes = 0;
+
+		free(v);
 
 	}
 
