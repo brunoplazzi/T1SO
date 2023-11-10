@@ -19,7 +19,7 @@
 #define MAX_NUM_SIZE 32000
 
 //numero de threads
-#define NUM_THREADS 8
+#define NUM_THREADS 100
 
 //VARIAVEIS GLOBAIS
 
@@ -300,34 +300,33 @@ void* threadFuncion(void* param) {
 			
 			mc_trabalho = mc_atual;
 			mc_atual++;
-		}
 
-		pthread_mutex_unlock(&mutex_mc);
+			pthread_mutex_unlock(&mutex_mc);
 
-		
-		v = mc_coordenada(mc_trabalho, LINHAS, MC_LINHA, MC_COLUNA);
+			v = mc_coordenada(mc_trabalho, LINHAS, MC_LINHA, MC_COLUNA);
 
 
-		int iFim = v[0] + MC_LINHA;
-		int jFim = v[1] + MC_COLUNA;
+			int iFim = v[0] + MC_LINHA;
+			int jFim = v[1] + MC_COLUNA;
 
-		for (i = v[0]; i < iFim; i++) {
-			for (j = v[1]; j < jFim; j++) {
+			for (i = v[0]; i < iFim; i++) {
+				for (j = v[1]; j < jFim; j++) {
 
-				if (ehPrimo(mat[i][j]) == 1) { localPrimes++; }
+					if (ehPrimo(mat[i][j]) == 1) { localPrimes++; }
+				}
 			}
+
+			pthread_mutex_lock(&mutex_prime);
+
+			contadorPrimos += localPrimes;
+
+			pthread_mutex_unlock(&mutex_prime);
+
+			localPrimes = 0;
+
+			free(v);
 		}
-
-		pthread_mutex_lock(&mutex_prime);
-
-		contadorPrimos += localPrimes;
-
-		pthread_mutex_unlock(&mutex_prime);
 		
-		localPrimes = 0;
-
-		free(v);
-
 	}
 
 	pthread_exit(0);
