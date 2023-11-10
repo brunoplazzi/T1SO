@@ -12,14 +12,14 @@
 #define COLUNAS 10000
 
 //tamanho dos macroblocos
-#define MC_LINHA 1000
-#define MC_COLUNA 1000
+#define MC_LINHA 10
+#define MC_COLUNA 10
 
 //tamanho maximo do numero
 #define MAX_NUM_SIZE 32000
 
 //numero de threads
-#define NUM_THREADS 4
+#define NUM_THREADS 8
 
 //VARIAVEIS GLOBAIS
 
@@ -53,7 +53,7 @@ int** matriz_inteiros(int l, int c) {
 	//verificando validade dos parametros
 	if (l < 1 || c < 1) {
 		
-		printf("ERRO! Parametro inválido. (l ou c devem ser maiores que zero)\n");
+		printf("ERRO! Parametro invalido. (l ou c devem ser maiores que zero)\n");
 		return NULL;
 	}
 
@@ -91,7 +91,7 @@ int** liberar_matriz(int l, int c, int** mat) {
 
 	if (l < 1 || c < 1) {
 		
-		printf("ERRO! Parametro inválido. (l ou c devem ser maiores que zero)\n");
+		printf("ERRO! Parametro invalido. (l ou c devem ser maiores que zero)\n");
 		return mat;
 	}
 
